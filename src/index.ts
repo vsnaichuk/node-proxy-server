@@ -1,40 +1,21 @@
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
-import axios from "axios";
+import config from "./config/config.js";
+import * as healthControllers from "./controllers/health.controller.js";
+import * as meteorControllers from "./controllers/meteor.controller.js";
 
-const PORT = process.env.PORT;
-const API_URL = process.env.API_URL;
-const API_KEY = process.env.API_KEY;
+const app = express();
 
-(async () => {
-	dotenv.config();
+// Middleware
+app.use(cors());
 
-	const app = express();
+// Routes
+const router = express.Router();
+router.get("/health", healthControllers.checkHealth);
+router.get("/meteors", meteorControllers.getMeteors);
+app.use("/api", router);
 
-	// Middleware
-	app.use(cors());
-
-	// Routes
-	const router = express.Router();
-	router.get("/health", (req, res) => {
-		res.status(200).send("Server is healthy");
-	});
-	app.use("/api", router);
-
-	try {
-		const startDate = "2015-09-07";
-		const endDate = "2015-09-08";
-		const res = await axios.get(
-			`${API_URL}/feed?start_date=${startDate}&end_date=${endDate}&api_key=${API_KEY}`,
-		);
-		console.log(JSON.stringify(res.data, null, 4));
-	} catch (err) {
-		console.error("Error fetching nasa feed:", err);
-	}
-
-	// Start server
-	app.listen(PORT, () => {
-		console.log(`[server]: Server is running at http://localhost:${PORT}`);
-	});
-})().catch(console.error);
+// Start server
+app.listen(config.PORT, () => {
+	console.log(`[server]: Server is running at http://localhost:${config.PORT}`);
+});
